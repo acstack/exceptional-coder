@@ -1,0 +1,22 @@
+# app.yaml file for exceptionalcoder application
+
+application: exceptionalcoder
+
+version: 1
+
+runtime: python
+
+api_version: 1
+
+handlers:
+- url: /images
+  static_dir: media/images
+
+- url: /css
+  static_dir: media/css
+  
+- url: /js
+  static_dir: media/js
+
+- url: /.*
+  script: exceptionalcoder.py

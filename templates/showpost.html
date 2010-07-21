@@ -1,0 +1,45 @@
+{% extends 'homepage.html' %}
+
+{% block title %} {{ bpost.posttitle }} {% endblock %}
+
+{% block js %}
+	<script type='text/javascript' src='/js/commentscript.js'></script>
+{% endblock %}
+
+{% block pagehead %} {{ bpost.posttitle }}{% endblock %}
+
+{% block links %}
+	<a href='/'>home</a>&nbsp;&nbsp;
+	<a href='{{ url_link }}'>{{ url_text }}</a>&nbsp;&nbsp;
+{% endblock %}
+
+{% block postblock %}
+	<table cellspacing='1' cellpadding='2' width='100%'>
+		<tr><td>Posted by {{ bpost.postby.nickname }} on {{ bpost.poston }}</td></tr>
+		<tr><td>{{ bpost.posttext|linebreaks }}</td></tr>
+		<tr><td><a name='comments'>Comments</a></td></tr>
+		<tr><td>
+			<div id='coment'>
+			{% if bpost.comments %}
+				{% for comment in bpost.comments %}
+					<fieldset><legend style='font-size:20px'>{{ comment.commentby.nickname }} said</legend>
+						{{ comment.commenton }}<br>
+						{{ comment.commenttext }}
+					</fieldset>
+				{% endfor %}
+			{% else %}
+				No Comments Be the first one to comment
+			{% endif %}
+			</div>
+		</td></tr>
+		<tr><td>
+			<form name='cmf' method='post' action='javascript:sendAjaxRequest(this,{{ bpost.post_id }})'>
+				<table cellspacing='1' cellpadding='2' width='100%'>
+					<tr><td width='20%'><label for='comtext'>Comment Text</label></td>
+						<td><textarea id='comtext' name='comtext' rows='5' cols='60'></textarea></td></tr>
+					<tr><td colspan='2' align='center'><input type='submit' name='comment' value='comment'></td></tr>
+				</table>
+			</form>
+		</td></tr>
+	</table>
+{% endblock %}

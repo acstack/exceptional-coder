@@ -1,0 +1,33 @@
+{% extends 'basetem.html' %}
+
+{% block title %} Admin Management {% endblock %}
+
+{% block pagehead %}Add New Post {% endblock %}
+
+{% block links %}
+	<a href='/admin/manage/'>manage</a>&nbsp;&nbsp;
+	<a href='/'>home</a>&nbsp;&nbsp;
+	<a href='{{ url_link }}'>logout</a>
+{% endblock %}
+
+{% block postblock %}
+	<div class='adblog'>
+	<form name='f1' method='post' action=''>
+		<table cellspacing='1' cellpadding='2' width='100%'>
+			<tr><td width='20%'><label for='bname'>Select Category</label></td>
+				<td width='80%'><select name='bname' id='bname' size='1'>
+					{% for blog in blog_list %}
+						<option value='{{ blog.blogname }}'>{{ blog.blogtitle }}</option>
+					{% endfor %}
+					</select>{{ errors.bname }}
+				</td>
+			</tr>
+			<tr><td><label for='ptitle'>Post Title</label></td>
+				<td><input type='text' name='ptitle' id='ptitle' size='80'>{{ errors.ptitle }}</td></tr>
+			<tr><td><label for='ptext'>Post Text</label></td>
+				<td><textarea cols='60' rows='20' id='ptext' name='ptext' style='overflow:auto'></textarea>{{ errors.ptext }}</td></tr>
+			<tr><td colspan='2' align='center'><input type='submit' name='post' value='Post'></td></tr>
+		</table>
+	</form>
+	</div>
+{% endblock %}

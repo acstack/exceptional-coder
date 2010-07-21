@@ -1,0 +1,44 @@
+{% extends 'basetem.html' %}
+{% block title %}Exceptional Coder{% endblock %}
+{% block js %}
+{% endblock %}
+{% block pagehead %}Exceptional Coder Blog{% endblock %}
+
+{% block links %}
+	{% if admin_link %}
+		<a href='{{ admin_link }}'>admin</a>&nbsp;&nbsp;
+	{% endif %}
+	<a href='{{ url_link }}'>{{ url_text }}</a>
+{% endblock %}
+
+{% block postblock %}
+	<table cellspacing='1' cellpadding='2' width='100%'>
+	{% for post in post_list %}
+		<tr><td><fieldset><legend><a href='{{ post.get_absolute_url }}'>{{ post.posttitle }}</a></legend>
+					Posted by {{ post.postby.nickname }} on {{ post.poston }}<br>
+					{{ post.posttext|linebreaks }}<br>
+					<a href='{{ post.get_absolute_url }}#comments'>{{ post.comments.count }} Comments</a>
+				</fieldset>
+		</td></tr>
+	{% endfor %}	
+	</table>
+{% endblock %}
+
+{% block rightblock %}
+	<div class='profile'>Here user profile will be shown</div>
+	<div class='categ'>
+		<table cellspacing='1' cellpadding='2' width='100%'>
+			<tr><td width='55%'>This block will have archive for posts</td>
+				<td width='45%'>
+				<fieldset><legend style='font-size:22px'>Categories</legend>
+					<ul>
+					{% for blog in blog_list %}
+						<li><a href='{{ blog.get_absolute_url }}'>{{ blog.blogtitle }}</a></li>
+					{% endfor %}
+					</ul>
+				</fieldset>
+				</td>
+			</tr>
+		</table>
+	</div>
+{% endblock %}

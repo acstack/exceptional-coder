@@ -1,0 +1,41 @@
+{% extends 'basetem.html' %}
+
+{% block title %} Admin Management {% endblock %}
+
+{% block pagehead %}Admin Page {% endblock %}
+
+{% block links %}
+	<a href='/'>home</a>&nbsp;&nbsp;
+	<a href='{{ url_link }}'>logout</a>
+{% endblock %}
+
+{% block postblock %}
+	<table cellspacing='1' cellpadding='0' width='100%' style='border:1px solid black'>
+		<tr><td width='40%'><h3>Existing Blog Categories</h3></td><td width='60%'><h3>Existing Blog Posts</h3></td></tr>
+		<tr><td style='vertical-align:top'>
+				<div style='min-height:400px'>
+				<ol>
+					{% for blog in blog_list %}
+						<li>{{ blog.blogtitle }}({{ blog.blogname }})</li>
+					{% endfor %}
+				</ol>
+				</div>
+			</td>
+			<td><div style='min-height:400px'>
+				<ol>
+					{% for post in post_list %}
+						<li>{{ post.posttitle }}<br>{{ post.get_limited_text|linebreaks }}</li>
+					{% endfor %}
+				</ol>
+				</div>
+			</td>
+		</tr>
+	</table>
+{% endblock %}
+
+{% block rightblock %}
+	<div style='margin:1mm;padding:1mm'>
+		<a href='/admin/addblog/'><img src='/images/nblg.jpg' alt='New Blog'></a><br><br>
+		<a href='/admin/addpost/'><img src='/images/npst.jpg' alt='New Post'></a>
+	</div>
+{% endblock %}

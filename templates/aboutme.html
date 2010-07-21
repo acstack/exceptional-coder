@@ -1,0 +1,37 @@
+{% extends 'basetem.html' %}
+
+{% block title %}About Me {% endblock %}
+
+{% block pagehead %} Shwetanka Srivastava {% endblock %}
+{% block links %}
+	<a href='/'>home</a>
+	{% if admin_link %}
+		<a href='{{ admin_link }}'>admin</a>&nbsp;&nbsp;
+	{% endif %}
+	<a href='{{ url_link }}'>{{ url_text }}</a>
+{% endblock %}
+
+{% block postblock %}
+	<fieldset><legend>Profile</legend>
+		<table cellspacing='1' cellpadding='2' width='100%'>
+			<tr><td width='20%'>Who am I?</td>
+				<td width='80%'>Some kind of a Programmer. I'm an Engineer and like Albert Einstein said<br>
+						"Scientists investigate that which already is;<br>
+							Engineers create that which has never been"<br>
+						I'm always looking for something new.</td></tr>
+			<tr><td>What I Love?</td><td>I love programming and always try to learn something new. Most of all I like the site
+						<a href='http://www.codechef.com'>codechef</a>. Here I get my hands on some very good programming problems to
+						sharpen my skills(algo + prg). I like to learn new technologies and implement them in applications.</td></tr>
+			<tr><td>Current</td><td>At present I'm learning Python. I've used Django framework to write a simple web app and 
+					am in process to host it on the Internet. This app I've made using only 'webapp' available with GAE. Also I'm learning
+					Agile Methodologies for Software Development. I've keen interest in REST and looking forward to implement it in my app.</td></tr>
+			<tr><td>Some Skills</td><td>Java, Python, Django, C++, Google API's<br>
+										Javascript, Ajax, CSS, HTML, XML, 
+										Scrum, Linux, MySQL and learning...</td></tr>
+		</table>
+	</fieldset>
+{% endblock %}
+
+{% block rightblock %}
+	<img src='/images/me.jpg' alt='No Image'>
+{% endblock %}
