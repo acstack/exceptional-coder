@@ -36,7 +36,7 @@
 			<form name='cmf' method='post' action='javascript:sendAjaxRequest(this,{{ bpost.post_id }})'>
 				<table cellspacing='1' cellpadding='2' width='100%'>
 					<tr><td width='20%'><label for='comtext'>Comment Text</label></td>
-						<td><textarea id='comtext' name='comtext' rows='5' cols='60'></textarea></td></tr>
+						<td><textarea id='comtext' name='comtext' rows='5' cols='60'>{{ cachetext }}</textarea></td></tr>
 					<tr><td colspan='2' align='center'><input type='submit' name='comment' value='comment'></td></tr>
 				</table>
 			</form>

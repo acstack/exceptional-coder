@@ -21,7 +21,7 @@ class Blogpost(db.Model):
 	def get_limited_text(self):
 		length = len(self.posttext)
 		if length > 500:
-			return posttext[:500] + "<a href='/post/%s/'>more</a>" % self.post_id
+			return self.posttext[:500] + "<a href='/post/%s/'>more</a>" % self.post_id
 		else:
 			return self.posttext
 

@@ -4,6 +4,7 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 from datamodels import *
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
+from google.appengine.api import memcache
 import os
 from utilities import *
 
@@ -118,6 +119,7 @@ class Homepage(webapp.RequestHandler):
 			url_text = "login"
 		blog_list = db.GqlQuery("select * from Blog")
 		post_list = db.GqlQuery("select * from Blogpost order by poston desc")
+		#Managing Buzz (to be done)
 		template_values={
 			'url_link': url_link,
 			'url_text': url_text,
@@ -180,6 +182,11 @@ class showpost(webapp.RequestHandler):
 			}
 		if user:
 			template_values['nick_name'] = user.nickname()
+		mpid = memcache.get('postid')
+		if mpid == pid:
+			template_values['cachetext'] = memcache.get('commtext')
+		memcache.delete('postid')
+		memcache.delete('commtext')
 		path = os.path.join(os.path.dirname(__file__), 'templates/showpost.html')
 		self.response.out.write(template.render(path, template_values))
 
@@ -188,16 +195,21 @@ class postcomment(webapp.RequestHandler):
 		pid = self.request.get('pid')
 		pid = int(pid)
 		ctext = self.request.get('comtext')
+		user = users.get_current_user()
+		nusr = ""
 		bposts = db.GqlQuery("select * from Blogpost where post_id = :1", pid)
 		bpost = bposts.get()
-		cid = getCommentId()
-		comment = Comments(blogpost=bpost, commentid=cid, commenttext=ctext)
-		comment.put()
+		if user:
+			cid = getCommentId()
+			comment = Comments(blogpost=bpost, commentid=cid, commenttext=ctext)
+			comment.put()
+		else:
+			nusr = "Please Login to post the Comment"
 		restext = ""
 		clist = bpost.comments
 		for c in clist:
 			restext = restext + "<fieldset><legend style='font-size:20px'>" + c.commentby.nickname() + " said</legend>" + str(c.commenton) + "<br>" + c.commenttext + "</fieldset>"
-		self.response.out.write(restext)
+		self.response.out.write(restext + nusr)
 
 class aboutme(webapp.RequestHandler):
 	def get(self):
