@@ -14,7 +14,7 @@
 {% endblock %}
 
 {% block postblock %}
-	<table cellspacing='1' cellpadding='2' width='100%'>
+	<table class='inner' cellspacing='1' cellpadding='2' width='100%'>
 		<tr><td>Posted by {{ bpost.postby.nickname }} on {{ bpost.poston }}</td></tr>
 		<tr><td>{{ bpost.posttext|linebreaks }}</td></tr>
 		<tr><td><a name='comments'>Comments</a></td></tr>
@@ -23,8 +23,8 @@
 			{% if bpost.comments %}
 				{% for comment in bpost.comments %}
 					<fieldset><legend style='font-size:20px'>{{ comment.commentby.nickname }} said</legend>
-						{{ comment.commenton }}<br>
-						{{ comment.commenttext }}
+						{{ comment.commenttext }}<br>
+						<div style='text-align:right'><i>Comment on {{ comment.commenton }}</i></div>
 					</fieldset>
 				{% endfor %}
 			{% else %}
@@ -32,7 +32,7 @@
 			{% endif %}
 			</div>
 		</td></tr>
-		<tr><td>
+		<tr><td><div id='err' style='color:red;border:1px solid red;width:300px;padding-left:1mm;display:none'></div>
 			<form name='cmf' method='post' action='javascript:sendAjaxRequest(this,{{ bpost.post_id }})'>
 				<table cellspacing='1' cellpadding='2' width='100%'>
 					<tr><td width='20%'><label for='comtext'>Comment Text</label></td>

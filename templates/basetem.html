@@ -7,22 +7,24 @@
 		{% block js %}{% endblock %}
 	</head>
 	<body>
+		<div class='timedis'>
+		<script type='text/javascript'>
+			document.write("<div id='clk' style='position:relative;height:60px;width:120px;color:#FFFFFF;text-align:center;font-size:18px'></div>");
+			displayClock('clk');
+		</script>
+		</div>
 		<div class='outer'>
 			<table class='inner' cellspacing='1' cellpadding='2' width='100%'>
 				<tr><td class='tabtitle' width='65%'>{% block pagehead %}{% endblock %}</td>
 					<td width='35%' align='right'><a href='http://github.com/shwetanka/exceptionalcoder'>src</a>&nbsp;&nbsp;
 						<a href='/knowme/'>knowme</a>&nbsp;&nbsp;
 						{% block links %}{% endblock %}</td></tr>
-				<tr><td width='65%' style='vertical-align:top'>{% block postblock %}{% endblock %}</td><td width='35%' style='vertical-align:top'>
-			<div class='timedis'>
-		<script type='text/javascript'>
-			document.write("<div id='clk' style='position:relative;height:30px;width:315px;color:#FDD017;text-align:center;font-size:20px;padding:1mm'></div>");
-			displayClock('clk');
-		</script>
-			</div>
+				<tr><td width='65%' style='vertical-align:top;border-top:1px solid #211102'>
+					{% block postblock %}{% endblock %}</td><td width='35%' style='vertical-align:top'>
 				<div class='rdisp'>{% block rightblock %}{% endblock %}</div></td></tr>
 				<tr><td colspan='2' align='center'>If you find any bugs or problems using the site please contact the site administrator</td></tr>
 			</table>
 		</div>
+		<div id='followers'></div>
 	</body>
 </html>

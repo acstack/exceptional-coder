@@ -19,13 +19,14 @@
 					{% for blog in blog_list %}
 						<option value='{{ blog.blogname }}'>{{ blog.blogtitle }}</option>
 					{% endfor %}
-					</select>{{ errors.bname }}
+					</select><b style='color:red'>{{ errors.bname }}</b>
 				</td>
 			</tr>
 			<tr><td><label for='ptitle'>Post Title</label></td>
-				<td><input type='text' name='ptitle' id='ptitle' size='80'>{{ errors.ptitle }}</td></tr>
+				<td><input type='text' name='ptitle' id='ptitle' size='80'><b style='color:red'>{{ errors.ptitle }}</b></td></tr>
 			<tr><td><label for='ptext'>Post Text</label></td>
-				<td><textarea cols='60' rows='20' id='ptext' name='ptext' style='overflow:auto'></textarea>{{ errors.ptext }}</td></tr>
+				<td><textarea cols='60' rows='20' id='ptext' name='ptext' style='overflow:auto'></textarea>
+					<b style='color:red'>{{ errors.ptext }}</b></td></tr>
 			<tr><td colspan='2' align='center'><input type='submit' name='post' value='Post'></td></tr>
 		</table>
 	</form>

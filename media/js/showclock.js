@@ -18,3 +18,9 @@ function strMonth(m)
 	var months=new Array("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December");
 	return months[m];
 	}
+
+function closeDiv()
+	{
+	document.getElementById('followers').style.display = 'none';
+	document.getElementsByTagName('body')[0].disabled=false;
+	}

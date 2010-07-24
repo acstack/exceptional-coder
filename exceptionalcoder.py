@@ -1,14 +1,15 @@
+#Main file that handles all the requests
+
 from google.appengine.api import users
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 from datamodels import *
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
-from google.appengine.api import memcache
 import os
 from utilities import *
+import consumer
 
-#template.register_template_library('templatetags.blogtags')
 # Request Handlers for Admin Functionality
 
 class HandleAdmin(webapp.RequestHandler):
@@ -51,7 +52,7 @@ class AddBlog(webapp.RequestHandler):
 			params['blogname'] = self.request.get('blogname')
 			params['blogtitle'] = self.request.get('blogtitle')
 			params['hasperm'] = self.request.get('hasperm')
-			self.url_link = users.create_logout_url('/')
+			url_link = users.create_logout_url('/')
 			errors = checkValidity(params)
 			if len(errors) > 0:
 				template_values = {'url_link': url_link, 'errors': errors}
@@ -84,10 +85,11 @@ class AddPost(webapp.RequestHandler):
 			params['bname'] = self.request.get('bname')
 			params['ptitle'] = self.request.get('ptitle')
 			params['ptext'] = self.request.get('ptext')
-			self.url_link = users.create_logout_url('/')
+			url_link = users.create_logout_url('/')
 			errors = checkValidity(params)
 			if len(errors) > 0:
-				templat_values = {'url_link': url_link, 'errors': errors}
+				blog_list = db.GqlQuery("select * from Blog")
+				template_values = {'url_link': url_link, 'errors': errors, 'blog_list': blog_list}
 				path = os.path.join(os.path.dirname(__file__), 'templates/addpost.html')
 				self.response.out.write(template.render(path, template_values))
 			else:
@@ -101,10 +103,6 @@ class AddPost(webapp.RequestHandler):
 		else:
 			self.redirect('/')
 
-#Request Handlers for User Interaction with the Application
-
-
-
 # requestHandlers for the User Interfaces
 
 class Homepage(webapp.RequestHandler):
@@ -113,13 +111,11 @@ class Homepage(webapp.RequestHandler):
 		if user:
 			url_link = users.create_logout_url('/')
 			url_text = "logout"
-			#Will  have functionality to display user profile on google
 		else:
 			url_link = users.create_login_url(self.request.uri)
 			url_text = "login"
 		blog_list = db.GqlQuery("select * from Blog")
 		post_list = db.GqlQuery("select * from Blogpost order by poston desc")
-		#Managing Buzz (to be done)
 		template_values={
 			'url_link': url_link,
 			'url_text': url_text,
@@ -128,10 +124,42 @@ class Homepage(webapp.RequestHandler):
 			}
 		if user:
 			template_values['nick_name'] = user.nickname()
+			#Clearing any earlier request_tokens resuting due to incomplete oauth requests(bug due to storing request_tokens in db)
+			clear_previous_request_tokens(user)
+			#Managing Buzz
+			import buzz
+			buzzhandle = BuzzHandler(user)
+			if buzzhandle.is_user_authenticated():
+				#Fetch BUZZ data for the user
+				buzzposts = buzzhandle.get_consumption_feed()
+				template_values['buzzposts'] = buzzposts
+			else:
+				template_values['gbuzz'] = 'ask_for'
+		else:
+			shtext = """Hi, there are a lot of things happening over here. Latest is the Google BUZZ integration with the application.
+						You need to authenticate just once and you are ready to use all favourite BUZZ right here. Post, comment,
+						update, delete and see all your friends updates. Login now with your Google Account"""
+			template_values['shtext'] = shtext
+
 		if users.is_current_user_admin():
 			template_values['admin_link'] = '/admin/'
 		path = os.path.join(os.path.dirname(__file__), 'templates/homepage.html')
 		self.response.out.write(template.render(path, template_values))
+	
+	def post(self):
+		mes = self.request.get('buzzpost', '')
+		if mes == '' or mes is None:
+			self.redirect('/')
+		user = users.get_current_user()
+		if user is not None:
+			import buzz
+			bh = BuzzHandler(user)
+			if bh.is_user_authenticated():
+				bh.create_buzz_post(mes)
+				self.redirect('/')
+		
+
+#Request Handlers for User Interaction with the Application
 
 class showcategory(webapp.RequestHandler):
 	def get(self, bname):
@@ -161,7 +189,6 @@ class showcategory(webapp.RequestHandler):
 
 class showpost(webapp.RequestHandler):
 	def get(self, pid):
-		#print pid + "........"
 		pid = int(pid)
 		user = users.get_current_user()
 		if user:
@@ -172,7 +199,6 @@ class showpost(webapp.RequestHandler):
 			url_text = "login"
 		bposts = db.GqlQuery("select * from Blogpost where post_id = :1", pid)
 		bpost = bposts.get()
-		#print bpost.posttitle
 		blog_list = db.GqlQuery("select * from Blog")
 		template_values = {
 			'url_link': url_link,
@@ -182,15 +208,11 @@ class showpost(webapp.RequestHandler):
 			}
 		if user:
 			template_values['nick_name'] = user.nickname()
-		mpid = memcache.get('postid')
-		if mpid == pid:
-			template_values['cachetext'] = memcache.get('commtext')
-		memcache.delete('postid')
-		memcache.delete('commtext')
 		path = os.path.join(os.path.dirname(__file__), 'templates/showpost.html')
 		self.response.out.write(template.render(path, template_values))
 
 class postcomment(webapp.RequestHandler):
+	#request to this method comes via ajax
 	def post(self):
 		pid = self.request.get('pid')
 		pid = int(pid)
@@ -208,7 +230,7 @@ class postcomment(webapp.RequestHandler):
 		restext = ""
 		clist = bpost.comments
 		for c in clist:
-			restext = restext + "<fieldset><legend style='font-size:20px'>" + c.commentby.nickname() + " said</legend>" + str(c.commenton) + "<br>" + c.commenttext + "</fieldset>"
+			restext = restext + "<fieldset><legend style='font-size:20px'>" + c.commentby.nickname() + " said</legend>" + c.commenttext + "<div style='text-align:right'><i>Comment on " + str(c.commenton) + "</i></div></fieldset>"
 		self.response.out.write(restext + nusr)
 
 class aboutme(webapp.RequestHandler):
@@ -243,6 +265,69 @@ class deletecomments(webapp.RequestHandler):
 			self.response.out.write("Comments Deleted")
 		else:
 			self.redirect('/')
+
+#Handling BUZZ Authentication
+class ConnectBUZZ(webapp.RequestHandler):
+	def get(self):
+		import buzz
+		client = buzz.Client()
+		client.build_oauth_consumer(consumer.CONSUMER_KEY, consumer.CONSUMER_KEY_SECRET)
+		client.oauth_scopes.append(buzz.FULL_ACCESS_SCOPE)
+		request_token = client.fetch_oauth_request_token('http://exceptionalcoder.appspot.com/buzzcallback/')
+		#Saving the request token
+		user = users.get_current_user()
+		bid = user.user_id()
+		tkey = request_token.key
+		tsecret = request_token.secret
+		token = TokenStore(buzzuser=user, buzzuserid=bid, tokenkey=tkey, tokensecret=tsecret, tokentype='request_token')
+		token.put()
+		#generate Authorization url
+		auth_url = client.build_oauth_authorization_url()
+		self.redirect(auth_url)
+
+class BuzzCallback(webapp.RequestHandler):
+	def get(self):
+		import buzz
+		verifier = self.request.get('oauth_verifier')
+		user = users.get_current_user()
+		uid = user.user_id()
+		qtoken = db.GqlQuery("select * from TokenStore where buzzuserid = :1 and tokentype = :2", uid, 'request_token')
+		token = qtoken.get()
+		#print token
+		client = buzz.Client()
+		client.build_oauth_consumer(consumer.CONSUMER_KEY, consumer.CONSUMER_KEY_SECRET)
+		client.oauth_scopes.append(buzz.FULL_ACCESS_SCOPE)
+		client.build_oauth_request_token(token.tokenkey, token.tokensecret)		
+		access_token = client.fetch_oauth_access_token(verifier)
+		#saving the access_token
+		token.tokenkey = access_token.key
+		token.tokensecret = access_token.secret
+		token.tokentype = 'access_token'
+		token.put()
+		#access_token saved redirecting to homepage
+		self.redirect('/')
+
+#Handling Buzz Operations
+
+class BuzzOperation(webapp.RequestHandler):
+	def get(self, reqtype):
+		if reqtype == 'followers':
+			#self.response.out.write("In requesttype" + reqtype)
+			import buzz
+			user = users.get_current_user()
+			bh = BuzzHandler(user)
+			if bh.is_user_authenticated():
+				followers = bh.get_user_followers()
+				restext = "<div style='width:99%;height:99%;text-align:right;color:green;background-image:url(/images/bgimg.jpg);overflow:auto'>"
+				restext += "<b onclick='closeDiv()' style='cursor:pointer'>close</b>"
+				restext += "<table cellspacing='1' cellpadding='2' width='100%'>"
+				for p in followers:
+					restext += "<tr><td width='40%'><img src='" + p.photo + "' alt='NA' width='50px' height='55px'></td><td><a href='" + p.uri +"'>" + p.name + "</a></td></tr>"
+				restext += "</table></div>"
+				self.response.out.write(restext)
+			else:
+				self.response.out.write("you are not authenticated")
+
 # Creating the WSGI Application for this app
 
 application = webapp.WSGIApplication([
@@ -255,7 +340,10 @@ application = webapp.WSGIApplication([
 									(r'^/post/(\d+)/$', showpost),
 									('/comment/submit/', postcomment),
 									('/comments/delete/', deletecomments),
-									('/knowme/', aboutme)],
+									('/knowme/', aboutme),
+									('/connect/googlebuzz/', ConnectBUZZ),
+									('/buzzcallback/', BuzzCallback),
+									(r'^/buzz/([a-z]+)/$', BuzzOperation)],
 									debug=True)
 
 def main():
