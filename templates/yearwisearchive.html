@@ -1,0 +1,23 @@
+{% extends 'homepage.html' %}
+
+{% block title %} {{ ar_year }} {% endblock %}
+
+{% block pagehead %} Year {{ ar_year }} {% endblock %}
+
+{% block links %}
+	<a href='/'>home</a>&nbsp;&nbsp;
+	<a href='{{ url_link }}'>{{ url_text }}</a>&nbsp;&nbsp;
+{% endblock %}
+
+{% block postblock %}
+	<table cellspacing='1' cellpadding='2' width='100%'>
+	{% for post in post_list %}
+		<tr><td><fieldset><legend><a href='{{ post.get_absolute_url }}'>{{ post.posttitle }}</a></legend>
+					Posted by {{ post.postby.nickname }} on {{ post.poston }}<br>
+					{{ post.posttext|linebreaks }}<br>
+					<a href='{{ post.get_absolute_url }}#comments'>{{ post.comments.count }} Comments</a>
+				</fieldset>
+		</td></tr>
+	{% endfor %}
+	</table>
+{% endblock %}

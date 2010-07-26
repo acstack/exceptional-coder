@@ -15,3 +15,14 @@ indexes:
   - name: blog
   - name: poston
     direction: desc
+
+- kind: Comments
+  properties:
+  - name: blogpost
+  - name: commenton
+
+- kind: Comments
+  properties:
+  - name: blogpost
+  - name: commenton
+    direction: desc

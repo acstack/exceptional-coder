@@ -20,8 +20,8 @@
 		<tr><td><a name='comments'>Comments</a></td></tr>
 		<tr><td>
 			<div id='coment'>
-			{% if bpost.comments %}
-				{% for comment in bpost.comments %}
+			{% if comment_list %}
+				{% for comment in comment_list %}
 					<fieldset><legend style='font-size:20px'>{{ comment.commentby.nickname }} said</legend>
 						{{ comment.commenttext }}<br>
 						<div style='text-align:right'><i>Comment on {{ comment.commenton }}</i></div>

@@ -68,10 +68,25 @@
 	</div>
 	<div class='categ'>
 		<table cellspacing='1' cellpadding='2' width='100%'>
-			<tr><td width='55%'>This block will have archive for posts</td>
-				<td width='45%'>
-				<fieldset><legend style='font-size:22px'>Categories</legend>
-					<ul>
+			<tr><td width='40%' style='vertical-align:top'>
+				<fieldset><legend style='font-size:20px'>Archive</legend>
+					<ul style='list-style-type:none;padding:0'>
+					{% for arch_year in archive_list %}
+						<li><a href='{{ arch_year.get_archiveyear_url }}'>{{ arch_year.a_year }}</a></li>
+						{% if arch_year.is_current_year %}
+							<ul style='list-style-type:none;padding-left:5mm'>
+								{% for arch_month in arch_year.archive_month_list %}
+									<li><a href='{{ arch_month.get_archivemonth_url }}'>{{ arch_month.a_month }}</a></li>
+								{% endfor %}
+							</ul>
+						{% endif %}
+					{% endfor %}
+					</ul>	
+				</fieldset>
+				</td>
+				<td width='45%' style='vertical-align:top'>
+				<fieldset><legend style='font-size:20px'>Categories</legend>
+					<ul style='list-style-type:none;padding:0'>
 					{% for blog in blog_list %}
 						<li><a href='{{ blog.get_absolute_url }}'>{{ blog.blogtitle }}</a></li>
 					{% endfor %}

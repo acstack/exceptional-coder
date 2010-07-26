@@ -4,6 +4,7 @@ from datamodels import TokenStore, Blogpost, Comments
 from google.appengine.ext import db
 from google.appengine.api import users
 import consumer
+import datetime
 
 def checkValidity(params):
 	errors = {}
@@ -71,4 +72,48 @@ def clear_previous_request_tokens(user):
 	qkey = db.GqlQuery("select __key__ from TokenStore where buzzuserid = :1 and tokentype = :2", uid, 'request_token')
 	for q in qkey:
 		db.delete(q)
+
+# Classes below handles Archive for posts
+class BlogArchive:
+	def __init__(self):
+		self.a_years = [2010, 2011, 2012]
+		self.cur_year = datetime.date.today().year
 	
+	def get_archive_year_list(self, year):
+		ar_year_list = []
+		for a_year in self.a_years:
+			if a_year <= self.cur_year:
+				if year == a_year:
+					ar_year_list.append(ArchiveYear(a_year, cur_year=True))
+				else:
+					ar_year_list.append(ArchiveYear(a_year))
+		return ar_year_list
+
+class ArchiveYear:
+	def __init__(self, a_year, cur_year=False):
+		self.a_year = a_year
+		self.cur_year = cur_year
+		self.a_months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+
+	def get_archiveyear_url(self):
+		return "/archive/%s/" % str(self.a_year)
+	
+	def archive_month_list(self):
+		ar_month_list = []
+		for a_month in self.a_months:
+			if (self.a_year == datetime.date.today().year and self.a_months.index(a_month) + 1 > datetime.date.today().month) or (self.a_year == 2010 and self.a_months.index(a_month) + 1 < 7):
+				pass
+			else:
+				ar_month_list.append(ArchiveMonth(self.a_year, a_month))
+		return ar_month_list
+
+	def is_current_year(self):
+		return self.cur_year
+
+class ArchiveMonth:
+	def __init__(self, a_year, a_month):
+		self.a_year = a_year
+		self.a_month = a_month
+
+	def get_archivemonth_url(self):
+		return "/archive/%s/%s/" % (str(self.a_year), self.a_month)

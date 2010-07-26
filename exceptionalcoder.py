@@ -116,11 +116,15 @@ class Homepage(webapp.RequestHandler):
 			url_text = "login"
 		blog_list = db.GqlQuery("select * from Blog")
 		post_list = db.GqlQuery("select * from Blogpost order by poston desc")
+		#Getting Archives for the blog
+		ba = BlogArchive()
+		ar_year_list = ba.get_archive_year_list(datetime.date.today().year)
 		template_values={
 			'url_link': url_link,
 			'url_text': url_text,
 			'blog_list': blog_list,
 			'post_list': post_list,
+			'archive_list': ar_year_list,
 			}
 		if user:
 			template_values['nick_name'] = user.nickname()
@@ -175,12 +179,16 @@ class showcategory(webapp.RequestHandler):
 		else:
 			url_link = users.create_login_url(self.request.uri)
 			url_text = "login"
+		ba = BlogArchive()
+		a_year = datetime.date.today().year
+		archive_list = ba.get_archive_year_list(a_year)
 		template_values = {
 			'url_link': url_link,
 			'url_text': url_text,
 			'post_list': post_list,
 			'category': blog,
 			'blog_list': blist,
+			'archive_list': archive_list,
 			}
 		if user:
 			template_values['nick_name'] = user.nickname()
@@ -199,16 +207,83 @@ class showpost(webapp.RequestHandler):
 			url_text = "login"
 		bposts = db.GqlQuery("select * from Blogpost where post_id = :1", pid)
 		bpost = bposts.get()
+		clist = bpost.comments.order('commenton')
 		blog_list = db.GqlQuery("select * from Blog")
+		ba = BlogArchive()
+		a_year = datetime.date.today().year
+		archive_list = ba.get_archive_year_list(a_year)
 		template_values = {
 			'url_link': url_link,
 			'url_text': url_text,
 			'bpost': bpost,
 			'blog_list': blog_list,
+			'comment_list': clist,
+			'archive_list': archive_list,
 			}
 		if user:
 			template_values['nick_name'] = user.nickname()
 		path = os.path.join(os.path.dirname(__file__), 'templates/showpost.html')
+		self.response.out.write(template.render(path, template_values))
+
+#Handling Archive Calls
+class HandleArchiveYear(webapp.RequestHandler):
+	def get(self, a_year):
+		a_year = int(a_year)
+		from_date = datetime.datetime(a_year, 1, 1)
+		to_date = datetime.datetime(a_year, 12, 31)
+		post_list = db.GqlQuery("select * from Blogpost where poston >= :1 and poston <= :2", from_date, to_date)
+		blog_list = db.GqlQuery("select * from Blog")
+		user = users.get_current_user()
+		if user:
+			url_link = users.create_logout_url(self.request.uri)
+			url_text = "logout"
+		else:
+			url_link = users.create_login_url(self.request.uri)
+			url_text = "login"
+		ba = BlogArchive()
+		archive_list = ba.get_archive_year_list(a_year)
+		template_values = {'url_link': url_link,
+						'url_text': url_text,
+						'post_list': post_list,
+						'blog_list': blog_list,
+						'archive_list': archive_list,
+						'ar_year': a_year,
+						}
+		path = os.path.join(os.path.dirname(__file__), 'templates/yearwisearchive.html')
+		self.response.out.write(template.render(path, template_values))
+
+class HandleArchiveMonth(webapp.RequestHandler):
+	def get(self, a_year, a_month):
+		a_year = int(a_year)
+		a_months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+		i_month = a_months.index(a_month)+1
+		i_day = 30
+		if i_month in [1, 3, 5, 7, 8, 10, 12]:
+			i_day = 31
+		if i_month == 2:
+			i_day = 28
+		from_date = datetime.datetime(a_year, i_month, 1)
+		to_date = datetime.datetime(a_year, i_month, i_day)
+		post_list = db.GqlQuery("select * from Blogpost where poston >= :1 and poston <= :2", from_date, to_date)
+		blog_list = db.GqlQuery("select * from Blog")
+		user = users.get_current_user()
+		if user:
+			url_link = users.create_logout_url(self.request.uri)
+			url_text = "logout"
+		else:
+			url_link = users.create_login_url(self.request.uri)
+			url_text = "login"
+		ba = BlogArchive()
+		archive_list = ba.get_archive_year_list(a_year)
+		template_values = {'url_link': url_link,
+						'url_text': url_text,
+						'post_list': post_list,
+						'blog_list': blog_list,
+						'archive_list': archive_list,
+						'ar_year': a_year,
+						'ar_month': a_month,
+						}
+		path = os.path.join(os.path.dirname(__file__), 'templates/monthwisearchive.html')
 		self.response.out.write(template.render(path, template_values))
 
 class postcomment(webapp.RequestHandler):
@@ -228,7 +303,7 @@ class postcomment(webapp.RequestHandler):
 		else:
 			nusr = "Please Login to post the Comment"
 		restext = ""
-		clist = bpost.comments
+		clist = bpost.comments.order('commenton')
 		for c in clist:
 			restext = restext + "<fieldset><legend style='font-size:20px'>" + c.commentby.nickname() + " said</legend>" + c.commenttext + "<div style='text-align:right'><i>Comment on " + str(c.commenton) + "</i></div></fieldset>"
 		self.response.out.write(restext + nusr)
@@ -343,7 +418,9 @@ application = webapp.WSGIApplication([
 									('/knowme/', aboutme),
 									('/connect/googlebuzz/', ConnectBUZZ),
 									('/buzzcallback/', BuzzCallback),
-									(r'^/buzz/([a-z]+)/$', BuzzOperation)],
+									(r'^/buzz/([a-z]+)/$', BuzzOperation),
+									(r'^/archive/(\d+)/$', HandleArchiveYear),
+									(r'^/archive/(\d+)/([a-zA-Z]+)/$', HandleArchiveMonth)],
 									debug=True)
 
 def main():
